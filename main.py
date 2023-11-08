@@ -75,7 +75,7 @@ def get_latest_video():
     download_video(video_links)
 
 # Schedule the task to run every day at 7:00 AM 
-schedule.every().day.at("23:59").do(get_latest_video)
+schedule.every().day.at("07:00").do(get_latest_video)
 # schedule.every(60).seconds.do(get_latest_video)
 
 # get_channel_statistics()

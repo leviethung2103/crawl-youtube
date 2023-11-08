@@ -11,3 +11,15 @@ Run
 ```python
 python main.py
 ```
+
+# Run the python as background task
+Install node
+```
+npm install pm2 -g 
+```
+
+Activate anaconda environment
+
+```
+pm2 start main.py --name youtube-task
+```
