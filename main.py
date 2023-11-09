@@ -21,6 +21,9 @@ MAX_RESULT = 10
 
 DATABASE = os.getenv("DATABASE")
 
+DOWNLOAD_VIDEO = int(os.getenv("DOWNLOAD_VIDEO"))
+DOWNLOAD_AUDIO = int(os.getenv("DOWNLOAD_AUDIO"))
+
 # Database
 database = VideoDatabse(DATABASE)
 
@@ -110,8 +113,10 @@ def get_latest_video():
 
     print("Download videos")
     # check download is successfull, update to database
-    download_video(needed_download_links)
-
+    if DOWNLOAD_VIDEO:
+        download_video(needed_download_links)
+    if DOWNLOAD_AUDIO:
+        download_audio(needed_download_links)
 
 # Schedule the task to run every day at 7:00 AM
 schedule.every().day.at("07:00").do(get_latest_video)
