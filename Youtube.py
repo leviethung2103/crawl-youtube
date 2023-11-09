@@ -1,6 +1,6 @@
 from yt_dlp import YoutubeDL
 import yt_dlp
-import os 
+import os
 from unidecode import unidecode
 from constants import SAVE_DIR_VIDEO, SAVE_DIR_AUDIO
 import ffmpeg
@@ -17,6 +17,7 @@ def rename_files_in_folder(folder_path):
         new_file_path = os.path.join(folder_path, new_file_name)
         os.rename(old_file_path, new_file_path)
 
+
 def download_video(urls=[]):
     if not os.path.exists(SAVE_DIR_VIDEO):
         os.makedirs(SAVE_DIR_VIDEO)
@@ -24,18 +25,21 @@ def download_video(urls=[]):
     ydl_opts = {
         'outtmpl': SAVE_DIR_VIDEO + '/%(title)s.%(ext)s',
     }
-    
-    with YoutubeDL(ydl_opts) as ydl:
-        ydl.download(urls)
-    
-    # rename all the filenames 
-    rename_files_in_folder(SAVE_DIR_VIDEO)
 
+    with YoutubeDL(ydl_opts) as ydl:
+        error_code = ydl.download(urls)
+
+    # rename all the filenames
+    rename_files_in_folder(SAVE_DIR_VIDEO)
+    
+    print(f"Error code: {error_code}")
+    
+    return error_code
 
 def download_audio(urls=[]):
     if not os.path.exists(SAVE_DIR_AUDIO):
         os.makedirs(SAVE_DIR_AUDIO)
-    
+
     ydl_opts = {
         'format': 'm4a/bestaudio/best',
         'postprocessors': [{
@@ -44,41 +48,43 @@ def download_audio(urls=[]):
         }],
         'outtmpl': SAVE_DIR_AUDIO + '/%(title)s.%(ext)s',
     }
-    
+
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        error_code = ydl.download(urls)
-    
-    # rename all the filenames 
+        ydl.download(urls)
+
+    # rename all the filenames
     rename_files_in_folder(SAVE_DIR_AUDIO)
+
 
 def webm2mp4(input_file, output_file):
     """ Very slow convertion """
     try:
-        input_file = 'Video1.webm'
-        output_file = 'output.mp4'
         input_options = {}
         output_options = {
-            'c:v': 'libx264', 
-            'strict': 'experimental', 
+            'c:v': 'libx264',
+            'strict': 'experimental',
         }
-        
+
         # Convert WebM to MP4
-        ffmpeg.input(input_file, **input_options).output(output_file, **output_options).run(overwrite_output=True)
+        ffmpeg.input(input_file, **input_options).output(output_file,
+                                                         **output_options).run(overwrite_output=True)
     except Exception as error:
-        print(f"Error: {str(e)}")
+        print(f"Error: {str(error)}")
+
 
 def concat_videos(input_files):
     try:
         # Define the output file name
         output_file = 'output_concatenated.mp4'
-        
+
         # Create a list of input options
         input_options = []
-        
+
         for file in input_files:
             input_options.extend(['-i', file])
-        
+
         # Use FFmpeg to concatenate the input files
-        ffmpeg.input(*input_options, filter_complex='concat=n={}:v=1:a=1'.format(len(input_files), output_options = {'c:v': 'libx264', 'c:a': 'aac'})).output(output_file).run()
+        ffmpeg.input(*input_options, filter_complex='concat=n={}:v=1:a=1'.format(len(input_files),
+                     output_options={'c:v': 'libx264', 'c:a': 'aac'})).output(output_file).run()
     except Exception as error:
-        print(f"Error: {str(e)}")
+        print(f"Error: {str(error)}")
