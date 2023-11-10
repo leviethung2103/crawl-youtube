@@ -8,6 +8,7 @@ from Youtube import download_audio, download_video
 from dotenv import load_dotenv
 import os
 from database import VideoDatabse
+from constants import SAVE_DIR_AUDIO, SAVE_DIR_VIDEO, FINAL_SAVE_DIR
 
 # Load the .env file
 load_dotenv()
@@ -17,15 +18,20 @@ API_SERVICE_NAME = "youtube"
 API_VERSION = "v3"
 
 CHANNEL_ID = "UCabsTV34JwALXKGMqHpvUiA"  # vtv24h
-MAX_RESULT = 10
 
 DATABASE = os.getenv("DATABASE")
 
 DOWNLOAD_VIDEO = int(os.getenv("DOWNLOAD_VIDEO"))
 DOWNLOAD_AUDIO = int(os.getenv("DOWNLOAD_AUDIO"))
 
+MAX_RESULT = int(os.getenv("MAX_NUMBER_VIDEOS"))
+
 # Database
 database = VideoDatabse(DATABASE)
+
+
+if not os.path.exists(FINAL_SAVE_DIR):
+    os.path.exists(FINAL_SAVE_DIR)
 
 
 def get_channel_info():
@@ -104,12 +110,12 @@ def get_latest_video():
     # Handle download case
     for video_id, data in videos.items():
         is_download = database.get_downloaded_flag(video_id)
-        if is_download is not None:
+        if is_download is None:
             # no record, insert to database
             download_flag = 0
             database.insert_video_info(
                 video_id, data['url'], data['title'], data['desc'], download_flag)
-            needed_download_links.append(video_url)
+            needed_download_links.append(data['url'])
 
     print("Download videos")
     # check download is successfull, update to database
@@ -118,13 +124,17 @@ def get_latest_video():
     if DOWNLOAD_AUDIO:
         download_audio(needed_download_links)
 
+
 # Schedule the task to run every day at 7:00 AM
-schedule.every().day.at("07:00").do(get_latest_video)
+# schedule.every().day.at("07:00").do(get_latest_video)
 # schedule.every(60).seconds.do(get_latest_video)
 
 # get_channel_statistics()
 # response = get_latest_video()
 
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+# while True:
+#     schedule.run_pending()
+#     time.sleep(1)
+
+
+get_latest_video()
