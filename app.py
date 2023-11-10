@@ -26,19 +26,20 @@ def serve_video(filename):
     video_folder = 'download/video'
     return send_from_directory(video_folder, filename)
 
-@app.route("/watch_button_cicked", methods=["POST"])
+@app.route("/watch_button_cicked", methods=["GET"])
 def handle_watch_button():
-    input_value = request.form.get('input_name')
-    print(input_value)
+    print('watch button clicked')
     return "Action handled success"
 
-@app.route("/like_button_clicked", methods=["POST"])
+@app.route("/like_button_clicked", methods=["GET"])
 def handle_like_button():
+    print('like button clicked')
     return "Action handled success"
 
 
-@app.route("/not_interested_button_clicked", methods=["POST"])
+@app.route("/not_interested_button_clicked", methods=["GET"])
 def handle_not_interested_button():
+    print('not interested button')
     return "Action handled success"
 
 if __name__ == '__main__':
