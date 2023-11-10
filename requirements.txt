@@ -6,3 +6,4 @@ ffmpeg-python
 yt-dlp
 unidecode
 flask
+loguru

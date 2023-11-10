@@ -7,7 +7,7 @@ import time
 from Youtube import download_audio, download_video
 from dotenv import load_dotenv
 import os
-from database import VideoDatabse
+from database import VideoDatabase
 from constants import SAVE_DIR_AUDIO, SAVE_DIR_VIDEO, FINAL_SAVE_DIR
 
 # Load the .env file
@@ -27,7 +27,7 @@ DOWNLOAD_AUDIO = int(os.getenv("DOWNLOAD_AUDIO"))
 MAX_RESULT = int(os.getenv("MAX_NUMBER_VIDEOS"))
 
 # Database
-database = VideoDatabse(DATABASE)
+database = VideoDatabase(DATABASE)
 
 
 if not os.path.exists(FINAL_SAVE_DIR):
@@ -96,10 +96,13 @@ def get_latest_video():
             video_links.append(video_url)
             video_ids.append(item['id']['videoId'])
 
+            print(type(publish_time))
+
             videos[video_id] = {
                 "title": title,
                 "desc": desc,
-                "url": video_url
+                "url": video_url,
+                "publish_time": publish_time
             }
 
     except Exception as e:
@@ -114,7 +117,7 @@ def get_latest_video():
             # no record, insert to database
             download_flag = 0
             database.insert_video_info(
-                video_id, data['url'], data['title'], data['desc'], download_flag)
+                video_id, data['url'], data['title'], data['desc'], download_flag, data['publish_time'])
             needed_download_links.append(data['url'])
 
     print("Download videos")
@@ -132,6 +135,9 @@ schedule.every().day.at("07:00").do(get_latest_video)
 # get_channel_statistics()
 # response = get_latest_video()
 
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+# while True:
+#     schedule.run_pending()
+#     time.sleep(1)
+
+
+get_latest_video()

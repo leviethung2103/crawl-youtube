@@ -4,6 +4,8 @@ import os
 from unidecode import unidecode
 from constants import SAVE_DIR_VIDEO, SAVE_DIR_AUDIO
 import ffmpeg
+from loguru import logger
+
 
 def rename_files_in_folder(folder_path):
     files = os.listdir(folder_path)
@@ -21,12 +23,22 @@ def download_video(urls=[]):
     if not os.path.exists(SAVE_DIR_VIDEO):
         os.makedirs(SAVE_DIR_VIDEO)
 
+    # ydl_opts = {
+    #     'outtmpl': SAVE_DIR_VIDEO + '/%(title)s.%(ext)s',
+    # }
+
     ydl_opts = {
-        'outtmpl': SAVE_DIR_VIDEO + '/%(title)s.%(ext)s',
+        'outtmpl': SAVE_DIR_VIDEO + '/%(id)s.%(ext)s',
     }
 
     with YoutubeDL(ydl_opts) as ydl:
-        ydl.download(urls)
+        for url in urls:
+            try:
+                ydl.download([url])
+                # print(f"Video: {url} downloaded successfully")
+                logger.debug(f"Video: {url} downloaded successfully")
+            except Exception as e:
+                logger.error(f"Error downloading video {url}: {str(e)}")
 
     # rename all the filenames
     # rename_files_in_folder(SAVE_DIR_VIDEO)
