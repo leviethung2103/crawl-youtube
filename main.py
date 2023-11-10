@@ -126,15 +126,12 @@ def get_latest_video():
 
 
 # Schedule the task to run every day at 7:00 AM
-# schedule.every().day.at("07:00").do(get_latest_video)
+schedule.every().day.at("07:00").do(get_latest_video)
 # schedule.every(60).seconds.do(get_latest_video)
 
 # get_channel_statistics()
 # response = get_latest_video()
 
-# while True:
-#     schedule.run_pending()
-#     time.sleep(1)
-
-
-get_latest_video()
+while True:
+    schedule.run_pending()
+    time.sleep(1)
