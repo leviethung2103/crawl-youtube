@@ -4,8 +4,6 @@ import os
 from unidecode import unidecode
 from constants import SAVE_DIR_VIDEO, SAVE_DIR_AUDIO
 import ffmpeg
-from moviepy.editor import VideoFileClip, concatenate_videoclips
-
 
 def rename_files_in_folder(folder_path):
     files = os.listdir(folder_path)

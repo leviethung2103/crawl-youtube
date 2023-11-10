@@ -5,3 +5,4 @@ schedule
 ffmpeg-python
 yt-dlp
 unidecode
+flask
