@@ -23,9 +23,8 @@ def download_video(urls=[]):
     if not os.path.exists(SAVE_DIR_VIDEO):
         os.makedirs(SAVE_DIR_VIDEO)
 
-    # ydl_opts = {
-    #     'outtmpl': SAVE_DIR_VIDEO + '/%(title)s.%(ext)s',
-    # }
+    # bestvideo[ext=mp4]+bestaudio[ext=m4a]
+    # 'bestvideo[ext=webm]+bestaudio[ext=webm]/best[ext=webm]/best',
 
     ydl_opts = {
         'format': 'bestvideo[ext=webm]+bestaudio[ext=webm]/best[ext=webm]/best',

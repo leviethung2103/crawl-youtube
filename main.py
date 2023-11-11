@@ -109,8 +109,10 @@ def get_latest_video():
         is_download = video_dal.get_info(video_id).first()
         if is_download is None:
             download_flag = 0
-            video_dal.insert(video_id, data['url'], data['title'],
-                             data['desc'], download_flag, data['publish_time'])
+            desc = data['desc'].replace('"', '')
+            title = data['title'].replace('"', '')
+            video_dal.insert(video_id, data['url'], title,
+                             desc, download_flag, data['publish_time'])
             needed_download_links.append(data['url'])
         else:
             logger.debug(f"Video: {video_id} already in database")

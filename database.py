@@ -3,6 +3,7 @@ from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import declarative_base
 from loguru import logger
+from sqlalchemy.engine import reflection
 
 
 Base = declarative_base()
@@ -10,7 +11,7 @@ Base = declarative_base()
 
 class Video(Base):
     __tablename__ = 'videos'
-    video_id = Column("video_id", Integer, primary_key=True)
+    video_id = Column("video_id", String, primary_key=True)
     video_url = Column("video_url", String)
     title = Column("title", String)
     description = Column("description", String)
@@ -41,7 +42,17 @@ class Video(Base):
 class VideoDal:
     def __init__(self, database) -> None:
         engine = create_engine(f"sqlite:///{database}", echo=False)
-        # Base.meta.create_all(bind=engine)
+
+        # Create an inspector object
+        inspector = reflection.Inspector.from_engine(engine)
+        # Check if the table exists
+        table_exists = inspector.has_table('videos')
+
+        if table_exists:
+            print("The table exists.")
+        else:
+            print("The table does not exist.")
+            Base.metadata.create_all(bind=engine)
 
         Session = sessionmaker(bind=engine)
         self.session = Session()
@@ -59,15 +70,17 @@ class VideoDal:
         self.session.add(video)
         self.session.commit()
         logger.info(f"Inserted {video_id}")
-    
-    def update(self,video_id, data: dict):
+
+    def update(self, video_id, data: dict):
         """ data (dict): {"video_id": "new_video_id"} """
-        self.session.query(Video).filter(Video.video_id == video_id).update(data)
+        self.session.query(Video).filter(
+            Video.video_id == video_id).update(data)
         self.session.commit()
         logger.info(f"Updated {video_id}")
 
     def get_all(self):
         return self.session.query(Video).all()
+
 
 if __name__ == "__main__":
     # Usage example
