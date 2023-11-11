@@ -1,4 +1,10 @@
-# Usage
+# Video Recommendation
+
+Tech stack: Python, SQL, Flask, Jinja2, HTML, CSS, Javascript
+
+![Alt text](<images/CleanShot 2023-11-11 at 22.49.52.png>)
+
+# Setup
 
 Install the packages
 
@@ -6,9 +12,11 @@ Install the packages
 pip install -r requirements.txt
 ```
 
-Rename file `.env.example` to `.env`, and then update the value of API_KEY
+Rename file `.env.example` to `.env`, and then update the value of `API_KEY`. Refer to https://developers.google.com/youtube/v3
 
-Run
+Enable the Youtube API v3 in your google account and get the `API_KEY`.
+
+## Development
 
 ```python
 # run background task
@@ -17,16 +25,17 @@ python main.py
 python app.py
 ```
 
-# Run the python as background task
+## Deployment 
 
-Install node
+PLease install node and npm before process this step. 
+Install pm2 app in order to run the python apps as background services.
 
+Install PM2 App
 ```
 npm install pm2 -g
 ```
 
 Activate anaconda environment
-
 ```
 pm2 start main.py --name youtube-task
 pm2 start app.py --name web-app
