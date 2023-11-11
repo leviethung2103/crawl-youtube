@@ -7,7 +7,7 @@ import time
 from Youtube import download_audio, download_video
 from dotenv import load_dotenv
 import os
-from database import VideoDatabase
+from database import VideoDal
 from constants import SAVE_DIR_AUDIO, SAVE_DIR_VIDEO, FINAL_SAVE_DIR
 from loguru import logger
 
@@ -28,8 +28,7 @@ DOWNLOAD_AUDIO = int(os.getenv("DOWNLOAD_AUDIO"))
 MAX_RESULT = int(os.getenv("MAX_NUMBER_VIDEOS"))
 
 # Database
-database = VideoDatabase(DATABASE)
-
+video_dal = VideoDal(DATABASE)
 
 if not os.path.exists(FINAL_SAVE_DIR):
     os.path.exists(FINAL_SAVE_DIR)
@@ -107,18 +106,16 @@ def get_latest_video():
 
     # Handle download case
     for video_id, data in videos.items():
-        is_download = database.get_downloaded_flag(video_id)
-        # @TODO: query not found video_id
+        is_download = video_dal.get_info(video_id).first()
         if is_download is None:
-            # no record, insert to database
             download_flag = 0
-            database.insert_video_info(
-                video_id, data['url'], data['title'], data['desc'], download_flag, data['publish_time'])
+            video_dal.insert(video_id, data['url'], data['title'],
+                             data['desc'], download_flag, data['publish_time'])
             needed_download_links.append(data['url'])
         else:
             logger.debug(f"Video: {video_id} already in database")
 
-    print("Download videos")
+    logger.debug("Downloading videos ...")
     # check download is successfull, update to database
     if DOWNLOAD_VIDEO:
         download_result = download_video(needed_download_links)
@@ -128,15 +125,15 @@ def get_latest_video():
 
 
 # Schedule the task to run every day at 7:00 AM
-schedule.every().day.at("13:25").do(get_latest_video)
+schedule.every().day.at("07:00").do(get_latest_video)
 # schedule.every(60).seconds.do(get_latest_video)
 
 # get_channel_statistics()
 # response = get_latest_video()
 
-# while True:
-#     schedule.run_pending()
-#     time.sleep(1)
+while True:
+    schedule.run_pending()
+    time.sleep(1)
 
 
-get_latest_video()
+# get_latest_video()

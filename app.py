@@ -1,9 +1,8 @@
-from jinja2 import Template
 import os
 from constants import SAVE_DIR_VIDEO
 from flask import Flask, render_template, send_from_directory, request, jsonify
 from loguru import logger
-from database import VideoDatabase
+from database import VideoDal
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -11,8 +10,7 @@ app = Flask(__name__)
 
 VIDEO_FOLDER = 'download/video'
 
-database = VideoDatabase(os.getenv("DATABASE"))
-
+video_dal =VideoDal(os.getenv("DATABASE"))
 
 @app.route('/')
 def index():
@@ -22,9 +20,9 @@ def index():
         if os.path.splitext(video)[1] not in [".mp4", "mov", ".webm", ".mkv"]:
             continue
         video_id = os.path.splitext(video)[0]
-        video_info_res = database.get_video_info(video_id)
-        if video_info_res.get("title") is not None:
-            video_title = video_info_res['title']
+        video_info_res = video_dal.get_info(video_id).first()
+        if video_info_res is not None:
+            video_title = video_info_res.title
             video_info.append((video, video_title))
         else:
             logger.error(f"Video Id was not found: {video_id}")
@@ -43,19 +41,20 @@ def handle_watch_button():
     video_name = json_data['video_name']
     rating = json_data['rating']
     video_id = os.path.splitext(video_name)[0]
-    database.update_video_info(video_id=video_id, data={
-                               "is_watch": 1, "rating": rating})
+    video_dal.update(video_id=video_id, data = {"is_watch": 1, "rating": rating})
 
     # @TODO: Refactor where likes and no_interest to be opposite
-    # handle rating
     like_threshold = 4
     if rating >= like_threshold:
-        database.update_video_info(video_id=video_id, data={"likes": 1})
+        video_dal.update(video_id=video_id, data = {"likes": 1})
     elif rating in [1, 2]:
-        database.update_video_info(video_id=video_id, data={"no_interest": 1})
+        video_dal.update(video_id=video_id, data = {"no_interest": 1})
 
     # delete videos
-    os.remove(os.path.join(VIDEO_FOLDER, video_name))
+    try:
+        os.remove(os.path.join(VIDEO_FOLDER, video_name))
+    except Exception as error:
+        logger.critical(f"str{error}")
 
     return {
         "status": "success",
@@ -70,7 +69,7 @@ def handle_like_button():
     json_data = request.get_json()
     video_name = json_data['video_name']
     video_id = os.path.splitext(video_name)[0]
-    database.update_video_info(video_id=video_id, data={"likes": 1})
+    video_dal.update(video_id=video_id, data = {"likes": 1})
 
     return {
         "status": "success",
@@ -88,7 +87,7 @@ def handle_no_interest():
 
     os.remove(os.path.join(VIDEO_FOLDER, video_name))
 
-    database.update_video_info(video_id=video_id, data={"no_interest": 1})
+    video_dal.update(video_id=video_id, data = {"no_interest": 1})
 
     return {
         "status": "success",
@@ -98,4 +97,4 @@ def handle_no_interest():
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port="5001", debug=True, threaded=False)
+    app.run(host="0.0.0.0", port="5001", debug=True, threaded=True)
