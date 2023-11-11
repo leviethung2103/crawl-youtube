@@ -28,20 +28,27 @@ def download_video(urls=[]):
     # }
 
     ydl_opts = {
+        'format': 'bestvideo[ext=webm]',
+        "socket_timeout": 300,
         'outtmpl': SAVE_DIR_VIDEO + '/%(id)s.%(ext)s',
     }
+
+    result = {}
 
     with YoutubeDL(ydl_opts) as ydl:
         for url in urls:
             try:
                 ydl.download([url])
-                # print(f"Video: {url} downloaded successfully")
                 logger.debug(f"Video: {url} downloaded successfully")
+                result[url] = 1
             except Exception as e:
                 logger.error(f"Error downloading video {url}: {str(e)}")
+                result[url] = 0
 
-    # rename all the filenames
     # rename_files_in_folder(SAVE_DIR_VIDEO)
+
+    return result
+
 
 def download_audio(urls=[]):
     if not os.path.exists(SAVE_DIR_AUDIO):

@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 import os
 from database import VideoDatabase
 from constants import SAVE_DIR_AUDIO, SAVE_DIR_VIDEO, FINAL_SAVE_DIR
+from loguru import logger
 
 # Load the .env file
 load_dotenv()
@@ -114,26 +115,28 @@ def get_latest_video():
             database.insert_video_info(
                 video_id, data['url'], data['title'], data['desc'], download_flag, data['publish_time'])
             needed_download_links.append(data['url'])
+        else:
+            logger.debug(f"Video: {video_id} already in database")
 
     print("Download videos")
     # check download is successfull, update to database
     if DOWNLOAD_VIDEO:
-        download_video(needed_download_links)
+        download_result = download_video(needed_download_links)
+        logger.debug(f"Download result: {download_result}")
     if DOWNLOAD_AUDIO:
         download_audio(needed_download_links)
 
 
 # Schedule the task to run every day at 7:00 AM
-schedule.every().day.at("22:27").do(get_latest_video)
+schedule.every().day.at("13:25").do(get_latest_video)
 # schedule.every(60).seconds.do(get_latest_video)
 
 # get_channel_statistics()
 # response = get_latest_video()
 
 # while True:
-#      schedule.run_pending()
-#      time.sleep(1)
+#     schedule.run_pending()
+#     time.sleep(1)
 
 
 get_latest_video()
-#
