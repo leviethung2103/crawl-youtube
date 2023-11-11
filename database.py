@@ -42,7 +42,8 @@ class VideoDatabase:
                         publish_time TEXT,
                         likes INTEGER,
                         no_interest INTEGER,
-                        is_watch INTEGER
+                        is_watch INTEGER,
+                        rating INTEGER
                     )''')
         except Exception as e:
             print(f"Error: {str(e)}")
@@ -50,14 +51,14 @@ class VideoDatabase:
         self.connection.commit()
         self.disconnect()
 
-    def insert_video_info(self, video_id, video_url, title, description, is_download, publish_time, likes=0, no_interest=0, is_watch=0):
+    def insert_video_info(self, video_id, video_url, title, description, is_download, publish_time, likes=0, no_interest=0, is_watch=0, rating=0):
         self.connect()
         cursor = self.connection.cursor()
 
         cursor.execute('''INSERT OR REPLACE INTO videos
-                          (video_id, video_url, title, description, is_download, publish_time, likes, no_interest, is_watch)
-                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                       (video_id, video_url, title, description, is_download, publish_time, likes, no_interest, is_watch))
+                          (video_id, video_url, title, description, is_download, publish_time, likes, no_interest, is_watch, rating)
+                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                       (video_id, video_url, title, description, is_download, publish_time, likes, no_interest, is_watch, rating))
 
         self.connection.commit()
         self.disconnect()
@@ -69,6 +70,7 @@ class VideoDatabase:
         likes = data.get("likes")
         no_interest = data.get("no_interest")
         is_watch = data.get("is_watch")
+        rating = data.get('rating')
 
         if likes:
             query = f"UPDATE videos SET likes='{likes}' WHERE video_id = '{video_id}'"
@@ -80,6 +82,10 @@ class VideoDatabase:
 
         if is_watch:
             query = f"UPDATE videos SET is_watch='{is_watch}' WHERE video_id = '{video_id}'"
+            cursor.execute(query)
+
+        if rating:
+            query = f"UPDATE videos SET rating='{rating}' WHERE video_id = '{video_id}'"
             cursor.execute(query)
 
         self.connection.commit()
@@ -99,7 +105,7 @@ class VideoDatabase:
             return result[0]
         else:
             return None
-    
+
     def get_video_info(self, video_id):
         """ Get the video id based on the video name """
         video_data = {}
@@ -113,13 +119,15 @@ class VideoDatabase:
         result = cursor.fetchone()
 
         if result:
-            keys = ['video_id', 'video_url', 'title', 'description', 'is_download', 'publish_time', 'likes', 'no_interest', 'is_watch']
+            keys = ['video_id', 'video_url', 'title', 'description',
+                    'is_download', 'publish_time', 'likes', 'no_interest', 'is_watch', 'rating']
             video_data = dict(zip(keys, result))
         else:
             print("No result found")
 
         self.disconnect()
         return video_data
+
 
 if __name__ == "__main__":
     # Usage example

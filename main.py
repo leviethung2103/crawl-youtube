@@ -113,6 +113,7 @@ def get_latest_video():
     # Handle download case
     for video_id, data in videos.items():
         is_download = database.get_downloaded_flag(video_id)
+        # @TODO: query not found video_id 
         if is_download is None:
             # no record, insert to database
             download_flag = 0
@@ -129,15 +130,16 @@ def get_latest_video():
 
 
 # Schedule the task to run every day at 7:00 AM
-schedule.every().day.at("07:00").do(get_latest_video)
+schedule.every().day.at("22:27").do(get_latest_video)
 # schedule.every(60).seconds.do(get_latest_video)
 
 # get_channel_statistics()
 # response = get_latest_video()
 
 # while True:
-#     schedule.run_pending()
-#     time.sleep(1)
+#      schedule.run_pending()
+#      time.sleep(1)
 
 
 get_latest_video()
+#

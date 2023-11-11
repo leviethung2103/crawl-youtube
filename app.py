@@ -23,8 +23,11 @@ def index():
             continue
         logger.debug(video)
         video_id = os.path.splitext(video)[0]
-        video_title = database.get_video_info(video_id)['title']
-        video_info.append((video, video_title))
+        print(video_id, video)
+        video_info_res = database.get_video_info(video_id)
+        if video_info_res.get("title") is not None:
+            video_title = video_info_res['title']
+            video_info.append((video, video_title))
     logger.debug(video_info)
     return render_template('video_gallery.html', video_info=video_info)
 

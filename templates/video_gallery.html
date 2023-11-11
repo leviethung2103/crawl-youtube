@@ -57,6 +57,35 @@
         .buttons button {
             margin: 5px;
         }
+
+        .rating {
+            unicode-bidi: bidi-override;
+            /* direction: ltr; */
+            text-align: center;
+        }
+
+        .rating>span {
+            display: inline-block;
+            position: relative;
+            width: 1.1em;
+            cursor: pointer;
+        }
+
+        .rating>span:before,
+        .rating>span.selected:before {
+            content: "\2605";
+            position: absolute;
+            color: gold;
+        }
+
+        .rating>span:before {
+            visibility: hidden;
+        }
+
+        .rating>span:hover:before,
+        .rating>span.selected:before {
+            visibility: visible;
+        }
     </style>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
@@ -77,8 +106,8 @@
                 Your browser does not support the video tag.
             </video>
             <div class="buttons">
-                <button type="button" class="watch-button btn btn-success"
-                    data-video-path="{{ video_path}}">Watched</button>
+                <button type="button" class="watch-button btn btn-success" data-video-path="{{ video_path}}"
+                    data-target="#myDialog" data-toggle="modal">Watched</button>
                 <button type="button" class="like-button btn btn-primary"
                     data-video-path="{{ video_path}}">Like</button>
                 <button type="button" class="not-interested-button btn btn-danger" data-video-path="{{ video_path}}">Not
@@ -87,8 +116,38 @@
         </div>
         {% endfor %}
 
-
     </div>
+
+    <!-- Dialog -->
+    <div class="modal fade" id="myDialog" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <!-- <div class="modal-dialog"> -->
+        <div class="modal-dialog modal-dialog-centered">
+
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Rate for video</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="rating">
+                        <span>&#9734;</span>
+                        <span>&#9734;</span>
+                        <span>&#9734;</span>
+                        <span>&#9734;</span>
+                        <span>&#9734;</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="saveButton">Save changes</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
         integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
         crossorigin="anonymous"></script>
@@ -103,22 +162,22 @@
         var likeButtons = Array.from(document.getElementsByClassName("like-button"));
         var notInterestedButtons = Array.from(document.getElementsByClassName("not-interested-button"));
 
-        watchButtons.forEach(function (button) {
-            button.addEventListener("click", function () {
-                var videoPath = button.getAttribute('data-video-path');
-                fetch("/watch_clicked", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ video_name: videoPath })
-                }).then(response => response.json()).then(data => {
-                    console.log(data);
-                }).catch(error => {
-                    console.error("Error", error);
-                });
-            });
-        });
+        // watchButtons.forEach(function (button) {
+        //     button.addEventListener("click", function () {
+        //         var videoPath = button.getAttribute('data-video-path');
+        //         fetch("/watch_clicked", {
+        //             method: "POST",
+        //             headers: {
+        //                 "Content-Type": "application/json"
+        //             },
+        //             body: JSON.stringify({ video_name: videoPath })
+        //         }).then(response => response.json()).then(data => {
+        //             console.log(data);
+        //         }).catch(error => {
+        //             console.error("Error", error);
+        //         });
+        //     });
+        // });
 
         likeButtons.forEach(function (button) {
             button.addEventListener("click", function () {
@@ -154,6 +213,78 @@
                 });
             });
         });
+
+    </script>
+    <!-- Rating + Video Id -->
+    <script>
+        const ratingSpans = document.querySelectorAll('.rating > span');
+        let selectedRatingIndex = -1;
+
+        function handleRatingClick(event) {
+            const currentSpan = event.currentTarget;
+            const clickedIndex = Array.from(ratingSpans).indexOf(currentSpan);
+
+            ratingSpans.forEach((span, index) => {
+
+                if (index <= clickedIndex) {
+                    span.classList.add('selected');
+                } else {
+                    span.classList.remove('selected');
+                }
+            });
+
+            selectedRatingIndex = clickedIndex;
+        }
+
+
+        function handleRatingHover(event) {
+            const currentSpan = event.currentTarget;
+            const hoveredIndex = Array.from(ratingSpans).indexOf(currentSpan);
+
+            if (selectedRatingIndex === -1) {
+                ratingSpans.forEach((span, index) => {
+                    if (index <= hoveredIndex) {
+                        span.classList.add('selected');
+                    } else {
+                        span.classList.remove('selected');
+                    }
+                });
+
+            }
+        }
+
+        function handleRatingLeave() {
+            if (selectedRatingIndex === -1) {
+                ratingSpans.forEach(span => {
+                    span.classList.remove('selected');
+                });
+            }
+
+        }
+
+        ratingSpans.forEach(span => {
+            span.addEventListener('click', handleRatingClick);
+            span.addEventListener('mouseover', handleRatingHover);
+            span.addEventListener('mouseleave', handleRatingLeave);
+        });
+
+
+        var watchButtons = Array.from(document.getElementsByClassName("watch-button"));
+        var videoPath;
+
+        watchButtons.forEach(function (button) {
+            button.addEventListener("click", function () {
+                videoPath = button.getAttribute('data-video-path');
+            });
+        });
+
+        var saveButton = document.getElementById("saveButton");
+        document.getElementById("saveButton").addEventListener("click", function () {
+            console.log("videoPath", videoPath);
+            console.log("clicked rating", selectedRatingIndex + 1);
+        })
+
+
 
     </script>
 </body>
