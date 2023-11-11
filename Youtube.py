@@ -28,8 +28,8 @@ def download_video(urls=[]):
     # }
 
     ydl_opts = {
-        'format': 'bestvideo[ext=webm]',
-        "socket_timeout": 300,
+        'format': 'bestvideo[ext=webm]+bestaudio[ext=webm]/best[ext=webm]/best',
+        "socket_timeout": 60,
         'outtmpl': SAVE_DIR_VIDEO + '/%(id)s.%(ext)s',
     }
 

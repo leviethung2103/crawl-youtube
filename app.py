@@ -19,7 +19,7 @@ def index():
     video_info = []
 
     for video in os.listdir(SAVE_DIR_VIDEO):
-        if os.path.splitext(video)[1] not in [".mp4", "mov", ".webm"]:
+        if os.path.splitext(video)[1] not in [".mp4", "mov", ".webm", ".mkv"]:
             continue
         video_id = os.path.splitext(video)[0]
         video_info_res = database.get_video_info(video_id)
