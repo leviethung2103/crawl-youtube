@@ -31,3 +31,11 @@ Activate anaconda environment
 pm2 start main.py --name youtube-task
 pm2 start app.py --name web-app
 ```
+
+## To DO
+- Refactor to MVC pattern
+
+## Changelog 
+11-11-2023: 
+- Fix thread database with flask by using the sqlachemy instead of sqlite 
+- Manipulate the database easier than before

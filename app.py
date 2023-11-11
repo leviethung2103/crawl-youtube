@@ -36,21 +36,24 @@ def serve_video(filename):
 
 @app.route("/watch_clicked", methods=["POST"])
 def handle_watch_button():
-    print('watch button clicked')
     json_data = request.get_json()
     video_name = json_data['video_name']
     rating = json_data['rating']
     video_id = os.path.splitext(video_name)[0]
-    video_dal.update(video_id=video_id, data = {"is_watch": 1, "rating": rating})
+
+    data = {"is_watch": 1, "rating": rating}
 
     # @TODO: Refactor where likes and no_interest to be opposite
     like_threshold = 4
     if rating >= like_threshold:
-        video_dal.update(video_id=video_id, data = {"likes": 1})
+        data["likes"] = 1
     elif rating in [1, 2]:
-        video_dal.update(video_id=video_id, data = {"no_interest": 1})
+        data["no_interest"] = 1    
 
-    # delete videos
+    # Update video data based on rating
+    video_dal.update(video_id=video_id, data=data)
+
+    # Delete videos
     try:
         os.remove(os.path.join(VIDEO_FOLDER, video_name))
     except Exception as error:
@@ -65,7 +68,6 @@ def handle_watch_button():
 
 @app.route("/like_clicked", methods=["POST"])
 def handle_like_button():
-    logger.debug('like button clicked')
     json_data = request.get_json()
     video_name = json_data['video_name']
     video_id = os.path.splitext(video_name)[0]
@@ -80,12 +82,15 @@ def handle_like_button():
 
 @app.route("/no_interest_clicked", methods=["POST"])
 def handle_no_interest():
-    logger.debug('not interested button')
     json_data = request.get_json()
     video_name = json_data['video_name']
     video_id = os.path.splitext(video_name)[0]
 
-    os.remove(os.path.join(VIDEO_FOLDER, video_name))
+    # delete videos
+    try:
+        os.remove(os.path.join(VIDEO_FOLDER, video_name))
+    except Exception as error:
+        logger.critical(f"str{error}")
 
     video_dal.update(video_id=video_id, data = {"no_interest": 1})
 
