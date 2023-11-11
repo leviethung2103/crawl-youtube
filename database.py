@@ -6,11 +6,18 @@ class VideoDatabase:
     def __init__(self, database) -> None:
         self.connection = None
         self.database = database
+        self.cursor = None
         if not self.database_exists():
             self.create_video_info_table()
 
+    def get_cursor(self):
+        if self.cursor is None:
+            self.cursor = self.connection.cursor()
+        return self.cursor
+
     def connect(self):
-        self.connection = sqlite3.connect(self.database)
+        if self.connection is None:
+            self.connection = sqlite3.connect(self.database)
 
     def disconnect(self):
         if self.connection:
@@ -22,7 +29,6 @@ class VideoDatabase:
         cursor.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='videos'")
         result = cursor.fetchone()
-        self.disconnect()
 
         return result is not None
 
@@ -31,7 +37,8 @@ class VideoDatabase:
 
     def create_video_info_table(self):
         self.connect()
-        cursor = self.connection.cursor()
+        cursor = self.get_cursor()
+
         try:
             cursor.execute('''CREATE TABLE IF NOT EXISTS videos (
                         video_id TEXT PRIMARY KEY,
@@ -49,11 +56,10 @@ class VideoDatabase:
             print(f"Error: {str(e)}")
 
         self.connection.commit()
-        self.disconnect()
 
     def insert_video_info(self, video_id, video_url, title, description, is_download, publish_time, likes=0, no_interest=0, is_watch=0, rating=0):
         self.connect()
-        cursor = self.connection.cursor()
+        cursor = self.get_cursor()
 
         cursor.execute('''INSERT OR REPLACE INTO videos
                           (video_id, video_url, title, description, is_download, publish_time, likes, no_interest, is_watch, rating)
@@ -61,11 +67,17 @@ class VideoDatabase:
                        (video_id, video_url, title, description, is_download, publish_time, likes, no_interest, is_watch, rating))
 
         self.connection.commit()
-        self.disconnect()
+
+    def query(self, query):
+        self.connect()
+        cursor = self.get_cursor()
+
+        cursor.execute(query)
+        self.connection.commit()
 
     def update_video_info(self, video_id, data={}):
         self.connect()
-        cursor = self.connection.cursor()
+        cursor = self.get_cursor()
 
         likes = data.get("likes")
         no_interest = data.get("no_interest")
@@ -74,32 +86,31 @@ class VideoDatabase:
 
         if likes:
             query = f"UPDATE videos SET likes='{likes}' WHERE video_id = '{video_id}'"
-            cursor.execute(query)
+            self.query(query)
 
         if no_interest:
             query = f"UPDATE videos SET no_interest='{no_interest}' WHERE video_id = '{video_id}'"
-            cursor.execute(query)
+            self.query(query)
 
         if is_watch:
             query = f"UPDATE videos SET is_watch='{is_watch}' WHERE video_id = '{video_id}'"
-            cursor.execute(query)
+            self.query(query)
 
         if rating:
             query = f"UPDATE videos SET rating='{rating}' WHERE video_id = '{video_id}'"
-            cursor.execute(query)
+            self.query(query)
 
-        self.connection.commit()
-        self.disconnect()
+        # self.connection.commit()
 
     def get_downloaded_flag(self, video_id):
         self.connect()
-        cursor = self.connection.cursor()
+        cursor = self.get_cursor()
 
         cursor.execute(
             "SELECT is_download FROM videos WHERE video_id = ?", (video_id,))
         result = cursor.fetchone()
 
-        self.disconnect()
+        self.connection.commit()
 
         if result:
             return result[0]
@@ -111,7 +122,7 @@ class VideoDatabase:
         video_data = {}
 
         self.connect()
-        cursor = self.connection.cursor()
+        cursor = self.get_cursor()
 
         query = f"SELECT * FROM videos WHERE video_id = '{video_id}'"
         cursor.execute(query)
@@ -125,7 +136,6 @@ class VideoDatabase:
         else:
             print("No result found")
 
-        self.disconnect()
         return video_data
 
 

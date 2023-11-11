@@ -21,14 +21,13 @@ def index():
     for video in os.listdir(SAVE_DIR_VIDEO):
         if os.path.splitext(video)[1] not in [".mp4", "mov", ".webm"]:
             continue
-        logger.debug(video)
         video_id = os.path.splitext(video)[0]
-        print(video_id, video)
         video_info_res = database.get_video_info(video_id)
         if video_info_res.get("title") is not None:
             video_title = video_info_res['title']
             video_info.append((video, video_title))
-    logger.debug(video_info)
+        else:
+            logger.error(f"Video Id was not found: {video_id}")
     return render_template('video_gallery.html', video_info=video_info)
 
 
@@ -42,8 +41,21 @@ def handle_watch_button():
     print('watch button clicked')
     json_data = request.get_json()
     video_name = json_data['video_name']
+    rating = json_data['rating']
     video_id = os.path.splitext(video_name)[0]
-    database.update_video_info(video_id=video_id, data={"is_watch": 1})
+    database.update_video_info(video_id=video_id, data={
+                               "is_watch": 1, "rating": rating})
+
+    # @TODO: Refactor where likes and no_interest to be opposite
+    # handle rating
+    like_threshold = 4
+    if rating >= like_threshold:
+        database.update_video_info(video_id=video_id, data={"likes": 1})
+    elif rating in [1, 2]:
+        database.update_video_info(video_id=video_id, data={"no_interest": 1})
+
+    # delete videos
+    os.remove(os.path.join(VIDEO_FOLDER, video_name))
 
     return {
         "status": "success",
@@ -86,4 +98,4 @@ def handle_no_interest():
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port="5001", debug=True)
+    app.run(host="0.0.0.0", port="5001", debug=True, threaded=False)

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Gallery</title>
+    <title>Video Recommendation</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -207,11 +207,15 @@
                     body: JSON.stringify({ video_name: videoPath })
                 }).then(response => response.json()).then(data => {
                     console.log(data);
+                    // refresh
                     location.reload();
+
                 }).catch(error => {
                     console.error("Error", error);
                 });
             });
+
+
         });
 
     </script>
@@ -219,6 +223,10 @@
     <script>
         const ratingSpans = document.querySelectorAll('.rating > span');
         let selectedRatingIndex = -1;
+
+        function refreshPage() {
+            location.reload();
+        }
 
         function handleRatingClick(event) {
             const currentSpan = event.currentTarget;
@@ -282,9 +290,22 @@
         document.getElementById("saveButton").addEventListener("click", function () {
             console.log("videoPath", videoPath);
             console.log("clicked rating", selectedRatingIndex + 1);
+            fetch("/watch_clicked", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ video_name: videoPath, rating: selectedRatingIndex + 1 })
+            }).then(response => response.json()).then(data => {
+                console.log(data);
+                refreshPage();
+            }).catch(error => {
+                console.error("Error", error);
+            });
+
+            // close the dialog using jquery
+            $('#myDialog').modal('toggle');
         })
-
-
 
     </script>
 </body>

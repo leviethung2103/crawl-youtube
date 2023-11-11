@@ -40,16 +40,12 @@ def get_channel_info():
     request = youtube.channels().list(part="snippet", id=CHANNEL_ID)
     response = request.execute()
 
-    pprint(response)
-
 
 def get_channel_statistics():
     youtube = googleapiclient.discovery.build(
         API_SERVICE_NAME, API_VERSION, developerKey=API_KEY)
     request = youtube.channels().list(part="statistics", id=CHANNEL_ID)
     response = request.execute()
-
-    pprint(response)
 
 
 def create_video_url(video_id):
@@ -96,8 +92,6 @@ def get_latest_video():
             video_links.append(video_url)
             video_ids.append(item['id']['videoId'])
 
-            print(type(publish_time))
-
             videos[video_id] = {
                 "title": title,
                 "desc": desc,
@@ -113,7 +107,7 @@ def get_latest_video():
     # Handle download case
     for video_id, data in videos.items():
         is_download = database.get_downloaded_flag(video_id)
-        # @TODO: query not found video_id 
+        # @TODO: query not found video_id
         if is_download is None:
             # no record, insert to database
             download_flag = 0
