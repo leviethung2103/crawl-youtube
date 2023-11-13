@@ -10,11 +10,15 @@ Install the packages
 
 ```python
 pip install -r requirements.txt
+# Rename file `.env.example` to `.env`,
+cp .env.example .env
 ```
 
-Rename file `.env.example` to `.env`, and then update the value of `API_KEY`. Refer to https://developers.google.com/youtube/v3
+Update the value of `API_KEY`. Refer to https://developers.google.com/youtube/v3
 
 Enable the Youtube API v3 in your google account and get the `API_KEY`.
+
+Add the secret key into .env
 
 ## Development
 
@@ -45,6 +49,8 @@ pm2 start app.py --name web-app
 - Refactor to MVC pattern
 
 ## Changelog 
+13-11-2023:
+- Add login page - authentication
 11-11-2023: 
 - Fix thread database with flask by using the sqlachemy instead of sqlite 
 - Manipulate the database easier than before

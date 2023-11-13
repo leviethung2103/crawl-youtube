@@ -1,19 +1,54 @@
 import os
 from constants import SAVE_DIR_VIDEO
-from flask import Flask, render_template, send_from_directory, request, jsonify
+from flask import Flask, render_template, send_from_directory, request, jsonify, redirect, url_for, session
 from loguru import logger
 from database import VideoDal
 from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = os.getenv('SECRET_KEY')
 
 VIDEO_FOLDER = 'download/video'
+USERNAME = os.getenv('USERNAME')
+PASSWORD = os.getenv('PASSWORD')
 
-video_dal =VideoDal(os.getenv("DATABASE"))
+video_dal = VideoDal(os.getenv("DATABASE"))
+
 
 @app.route('/')
 def index():
+    # check if user is already loggin in
+    if 'username' in session:
+        return redirect(url_for('video_rec'))
+
+    return redirect(url_for('login'))
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        form_data = request.form
+        if bool(form_data):
+            if request.form['username'] != USERNAME or request.form['password'] != PASSWORD:
+                error = 'Invalid Credentials. Please try again.'
+                logger.debug("Wrong username and password")
+            else:
+                logger.debug("Login successfully")
+                # Store the username in ession to indicate user is loggin in
+                session['username'] = request.form['username']
+                return redirect(url_for('video_rec'))
+        else:
+            print("Form data is empty")
+    # return login page
+    return render_template('login.html', error=error)
+
+
+@app.route('/video-rec')
+def video_rec():
+    if 'username' not in session:
+        return redirect(url_for('login'))
     video_info = []
 
     for video in os.listdir(SAVE_DIR_VIDEO):
@@ -48,7 +83,7 @@ def handle_watch_button():
     if rating >= like_threshold:
         data["likes"] = 1
     elif rating in [1, 2]:
-        data["no_interest"] = 1    
+        data["no_interest"] = 1
 
     # Update video data based on rating
     video_dal.update(video_id=video_id, data=data)
@@ -71,7 +106,7 @@ def handle_like_button():
     json_data = request.get_json()
     video_name = json_data['video_name']
     video_id = os.path.splitext(video_name)[0]
-    video_dal.update(video_id=video_id, data = {"likes": 1})
+    video_dal.update(video_id=video_id, data={"likes": 1})
 
     return {
         "status": "success",
@@ -92,7 +127,7 @@ def handle_no_interest():
     except Exception as error:
         logger.critical(f"str{error}")
 
-    video_dal.update(video_id=video_id, data = {"no_interest": 1})
+    video_dal.update(video_id=video_id, data={"no_interest": 1})
 
     return {
         "status": "success",
