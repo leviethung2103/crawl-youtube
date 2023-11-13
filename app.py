@@ -16,18 +16,31 @@ PASSWORD = os.getenv('PASSWORD')
 video_dal = VideoDal(os.getenv("DATABASE"))
 
 
+@app.route("/info")
+def info():
+    return render_template('info.html')
+
+
+@app.route("/about")
+def about():
+    return redirect(url_for("login"))
+
+
 @app.route('/')
 def index():
     # check if user is already loggin in
     if 'username' in session:
         return redirect(url_for('video_rec'))
 
-    return redirect(url_for('login'))
+    return redirect(url_for('info'))
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
+    if 'username' in session:
+        return redirect(url_for('video_rec'))
+
     if request.method == 'POST':
         form_data = request.form
         if bool(form_data):
@@ -43,6 +56,17 @@ def login():
             print("Form data is empty")
     # return login page
     return render_template('login.html', error=error)
+
+
+@app.route('/logout', methods=['GET'])
+def logout():
+    error = None
+    if request.method == 'GET':
+        session.pop('username', None)
+
+        logger.debug("Logged out successfully")
+
+        return redirect(url_for('info'))
 
 
 @app.route('/video-rec')
