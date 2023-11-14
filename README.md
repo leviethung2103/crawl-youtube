@@ -47,6 +47,11 @@ pm2 start app.py --name web-app
 
 ## To DO
 - Refactor to MVC pattern
+- Play the video on Iphone
+
+## Converting 
+ffmpeg -i <input_path> -c:v h264_nvenc -c:a aac <output_path>
+
 
 ## Changelog 
 13-11-2023:

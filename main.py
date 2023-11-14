@@ -4,7 +4,7 @@ from pprint import pprint
 import schedule
 from datetime import datetime, timedelta
 import time
-from Youtube import download_audio, download_video
+from Youtube import download_audio, download_video, convert_webm_mp4
 from dotenv import load_dotenv
 import os
 from database import VideoDal
@@ -26,6 +26,8 @@ DOWNLOAD_VIDEO = int(os.getenv("DOWNLOAD_VIDEO"))
 DOWNLOAD_AUDIO = int(os.getenv("DOWNLOAD_AUDIO"))
 
 MAX_RESULT = int(os.getenv("MAX_NUMBER_VIDEOS"))
+
+VIDEO_FOLDER = os.getenv("VIDEO_FOLDER")
 
 # Database
 video_dal = VideoDal(DATABASE)
@@ -122,6 +124,10 @@ def get_latest_video():
     if DOWNLOAD_VIDEO:
         download_result = download_video(needed_download_links)
         logger.debug(f"Download result: {download_result}")
+        # convert video webm -> mp4
+        downloaded_files = os.listdir(VIDEO_FOLDER)
+        downloaded_files = [os.path.join(VIDEO_FOLDER, file) for file in downloaded_files]
+        convert_webm_mp4(downloaded_files)
     if DOWNLOAD_AUDIO:
         download_audio(needed_download_links)
 

@@ -44,8 +44,6 @@ def download_video(urls=[]):
                 logger.error(f"Error downloading video {url}: {str(e)}")
                 result[url] = 0
 
-    # rename_files_in_folder(SAVE_DIR_VIDEO)
-
     return result
 
 
@@ -83,3 +81,17 @@ def webm2mp4(input_file, output_file):
                                                          **output_options).run(overwrite_output=True)
     except Exception as error:
         print(f"Error: {str(error)}")
+
+
+def convert_webm_mp4(input_paths):
+    """ Default resolution 640x480 """
+    for input_path in input_paths:
+        if os.path.splitext(input_path)[1].lower() == ".webm":
+            print("Converting {} to mp4...".format(input_path))
+            output_file = os.path.splitext(input_path)[0] + '.mp4'
+            stream = ffmpeg.input(input_path).output(
+                output_file, vcodec="h264_nvenc", acodec="aac", vf='scale=640:480').overwrite_output()
+
+            ffmpeg.run(stream)
+        else:
+            print("Invalid input file. Only webm files are supported.")
