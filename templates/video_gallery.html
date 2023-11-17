@@ -119,18 +119,19 @@
             </div>
         </div>
     </nav>
-    <h1>Video Recommendation</h1>
+    <h1>News Recommendation</h1>
 
     <div class="video-container">
         {% for video_path, video_title in video_info %}
-        <div class="video-card">
+        <div class="video-card" data-video-id="{{ video_path}} ">
             <p>{{video_title}}</p>
-            <video controls>
-                <source src="{{ url_for('serve_video', filename=video_path) }}"
-                    type="video/{{ video_path.split('.')[-1] }}">
+            <video style="max-width: 100%; margin: 10px; width:100%" poster="static/assets/img/thumnail.jpeg" controls>
+                <source type="video/{{ video_path.split('.')[-1] }}">
                 Your browser does not support the video tag.
             </video>
             <div class="buttons">
+                <button type="button" class="watch-button btn btn-secondary" data-video-path="{{ video_path}}"
+                    data-toggle="modal" onclick="loadVideo(this)">Play</button>
                 <button type="button" class="watch-button btn btn-success" data-video-path="{{ video_path}}"
                     data-target="#myDialog" data-toggle="modal">Watched</button>
                 <button type="button" class="like-button btn btn-primary"
@@ -304,10 +305,12 @@
 
         var watchButtons = Array.from(document.getElementsByClassName("watch-button"));
         var videoPath;
+        var videoCard;
 
         watchButtons.forEach(function (button) {
             button.addEventListener("click", function () {
                 videoPath = button.getAttribute('data-video-path');
+                videoCard = button.closest('.video-card');
             });
         });
 
@@ -315,6 +318,14 @@
         document.getElementById("saveButton").addEventListener("click", function () {
             console.log("videoPath", videoPath);
             console.log("clicked rating", selectedRatingIndex + 1);
+
+            // close the dialog using jquery
+            $('#myDialog').modal('toggle');
+
+            // remove video card
+            videoCard.remove();
+
+            // Send request background
             fetch("/watch_clicked", {
                 method: "POST",
                 headers: {
@@ -323,14 +334,37 @@
                 body: JSON.stringify({ video_name: videoPath, rating: selectedRatingIndex + 1 })
             }).then(response => response.json()).then(data => {
                 console.log(data);
-                refreshPage();
+
             }).catch(error => {
                 console.error("Error", error);
             });
 
-            // close the dialog using jquery
-            $('#myDialog').modal('toggle');
+
+            ratingSpans.forEach((span, index) => {
+                span.classList.remove('selected');
+            });
+
         })
+
+        function loadVideo(button) {
+            var videoCard = button.closest('.video-card');
+            var videoPath = button.getAttribute('data-video-path');
+            var videoSource = videoCard.querySelector('source');
+            console.log("Here");
+            console.log(videoCard);
+            console.log(videoPath);
+            console.log(videoSource);
+
+            // Set the src attribute to fetch the video
+            videoSource.setAttribute('src', "{{ url_for('serve_video', filename= '') }}" + videoPath);
+
+            // Remove the event listener to prevent multiple fetches
+            button.removeEventListener('click', loadVideo);
+
+            var video = videoCard.querySelector('video');
+            video.load();
+            video.play();
+        }
 
     </script>
 </body>
