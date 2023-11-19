@@ -128,7 +128,7 @@
     <div class="video-container">
         {% for video_path, video_title, rating, thumbnail_url in video_info %}
         <div class="video-card" data-video-id="{{ video_path}} ">
-            <p>{{video_title}}</p>
+            <p>{{rating}} | {{video_title}}</p>
             <video style="max-width: 100%; margin: 10px; width:100%"
                 poster="{% if thumbnail_url %}{{ thumbnail_url }}{% else %}static/assets/img/thumbnail.jpeg{% endif %}"
                 controls>

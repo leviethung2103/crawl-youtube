@@ -4,6 +4,8 @@ from flask import Flask, render_template, send_from_directory, request, jsonify,
 from loguru import logger
 from database import VideoDal
 from dotenv import load_dotenv
+from pprint import pprint
+from VideoRating import VideoRatingPredictor
 load_dotenv()
 
 app = Flask(__name__)
@@ -14,11 +16,19 @@ USERNAME = os.getenv('USERNAME')
 PASSWORD = os.getenv('PASSWORD')
 
 video_dal = VideoDal(os.getenv("DATABASE"))
+rating_predictor = VideoRatingPredictor(
+    csv_path=None, database=os.getenv("DATABASE"))
 
 
 @app.route("/info")
 def info():
     return render_template('info.html')
+
+
+@app.route("/train_model")
+def train_recommender():
+    rating_predictor.train_model()
+    return "Trained recommender"
 
 
 @app.route("/about")
@@ -60,13 +70,47 @@ def login():
 
 @app.route('/logout', methods=['GET'])
 def logout():
-    error = None
     if request.method == 'GET':
         session.pop('username', None)
 
         logger.debug("Logged out successfully")
 
         return redirect(url_for('info'))
+
+
+@app.route('/video-rec-debug')
+def video_rec_debug():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    video_infos = []
+    process_data = []
+
+    for video in os.listdir(SAVE_DIR_VIDEO):
+        if os.path.splitext(video)[1] not in [".mp4", "mov", ".webm", ".mkv"]:
+            continue
+        video_id = os.path.splitext(video)[0]
+        video_info_res = video_dal.get_info(video_id).first()
+        if video_info_res is not None:
+            video_title = video_info_res.title
+            video_desc = video_info_res.description
+            predicted_rating = rating_predictor.predict_ratings(video_desc)
+            thumbnail = video_info_res.medium_thumbnail
+            publish_time = video_info_res.publish_time
+            process_data.append(
+                {"video_path": video, "video_id": video_id, "video_title": video_title,
+                 "thumbnail": thumbnail, "publish_time": publish_time,
+                 "rating": predicted_rating})
+        else:
+            logger.error(f"Video Id was not found: {video_id}")
+
+    # sort recommend by rating and time
+    sorted_process_data = sorted(
+        process_data, key=lambda x: (-x['rating'], x['publish_time']))
+
+    video_infos = [(item["video_path"], item["video_title"], item[
+        "rating"], item["thumbnail"]) for item in sorted_process_data]
+
+    return render_template('video_gallery_debug.html', video_info=video_infos)
 
 
 @app.route('/video-rec')
@@ -82,7 +126,11 @@ def video_rec():
         video_info_res = video_dal.get_info(video_id).first()
         if video_info_res is not None:
             video_title = video_info_res.title
-            video_info.append((video, video_title))
+            video_desc = video_info_res.description
+            predicted_rating = rating_predictor.predict_ratings(video_desc)
+            thumbnail = video_info_res.medium_thumbnail
+            video_info.append(
+                (video, video_title, predicted_rating, thumbnail))
         else:
             logger.error(f"Video Id was not found: {video_id}")
     return render_template('video_gallery.html', video_info=video_info)

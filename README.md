@@ -45,15 +45,35 @@ pm2 start main.py --name youtube-task
 pm2 start app.py --name web-app
 ```
 
+## Next features
+- Share button
+- Popup show off the transcript 
+
 ## To DO
 - Refactor to MVC pattern
 - Play the video on Iphone
-
+- Send to chatgpt to extract the description, update long description into database
+- Split the long video into small chunks -> 
+  video 20mins: auto split into different small sections 
+- Summarize the sections 
+- Show the descriptions button 
+- Correct the button Not intersted, Like
+- Add share button
 ## Converting 
 ffmpeg -i <input_path> -c:v h264_nvenc -c:a aac <output_path>
 
 
 ## Changelog 
+19-11-2023:
+- Installed Underthesea for recommendation
+- Fix bug convert video to mp4 
+- Add recommend feature into video
+- Add thumbnail for video
+- Add feature download transcript if available
+- Add VideoRating class for Recommendation 
+- Add function download and transcribe the audio -> script
+- Add delete feature for database
+
 13-11-2023:
 - Add login page - authentication
 11-11-2023: 

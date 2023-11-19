@@ -7,3 +7,7 @@ yt-dlp
 unidecode
 flask
 loguru
+underthesea
+soundfile
+dm-haiku
+openai-whisper
