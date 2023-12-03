@@ -42,7 +42,14 @@ npm install pm2 -g
 Activate anaconda environment
 ```
 pm2 start main.py --name youtube-task
-pm2 start app.py --name web-app
+pm2 start web_app.py --name web-app
+
+nohup jupyter-lab --no-browser --ip 0.0.0.0 --port=8888 &
+# check the PID of process
+lsof nohup.out
+# find the process between all the running processes of the computer
+ps au | grep jupyter
+kill -9 <PID>
 ```
 
 ## Next features
@@ -64,6 +71,17 @@ ffmpeg -i <input_path> -c:v h264_nvenc -c:a aac <output_path>
 
 
 ## Changelog 
+03-12-2023:
+- Remove downloading youtube videos
+- Use directly yoiutube url 
+- Optimize loading page
+
+20-11-2023:
+- Transcribe the audio
+- Convert video -> audio
+- Save the transcription into file 
+- Save transcription into database
+
 19-11-2023:
 - Installed Underthesea for recommendation
 - Fix bug convert video to mp4 

@@ -5,3 +5,5 @@ __pycache__
 *.webm
 *.m4a
 *.db
+download/audio
+download/transcript

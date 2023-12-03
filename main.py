@@ -15,7 +15,7 @@ from Youtube import get_transcript
 # Load the .env file
 load_dotenv()
 
-API_KEY = os.getenv('API_KEY')
+GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 API_SERVICE_NAME = "youtube"
 API_VERSION = "v3"
 
@@ -49,16 +49,18 @@ def get_thumbnaisl(item):
 
 def get_channel_info():
     youtube = googleapiclient.discovery.build(
-        API_SERVICE_NAME, API_VERSION, developerKey=API_KEY)
+        API_SERVICE_NAME, API_VERSION, developerKey=GOOGLE_API_KEY)
     request = youtube.channels().list(part="snippet", id=CHANNEL_ID)
     response = request.execute()
+    return response
 
 
 def get_channel_statistics():
     youtube = googleapiclient.discovery.build(
-        API_SERVICE_NAME, API_VERSION, developerKey=API_KEY)
+        API_SERVICE_NAME, API_VERSION, developerKey=GOOGLE_API_KEY)
     request = youtube.channels().list(part="statistics", id=CHANNEL_ID)
     response = request.execute()
+    return response
 
 
 def create_video_url(video_id):
@@ -68,7 +70,7 @@ def create_video_url(video_id):
 def get_latest_video():
     print("Fetching latest video ")
     youtube = googleapiclient.discovery.build(
-        API_SERVICE_NAME, API_VERSION, developerKey=API_KEY)
+        API_SERVICE_NAME, API_VERSION, developerKey=GOOGLE_API_KEY)
 
     yesterday = (datetime.now() - timedelta(days=1)
                  ).strftime('%Y-%m-%d') + "T00:00:00Z"
@@ -137,11 +139,12 @@ def get_latest_video():
                              default_thumbnail=default_thumbnail)
             needed_download_links.append(data['url'])
         else:
+            # needed_download_links.append(data['url'])
             logger.debug(f"Video: {video_id} already in database")
 
-    logger.debug("Downloading videos ...")
     # check download is successfull, update to database
     if DOWNLOAD_VIDEO:
+        logger.debug("Downloading videos ...")
         download_result = download_video(needed_download_links)
         logger.debug(f"Download result: {download_result}")
         # convert video webm -> mp4
@@ -150,19 +153,25 @@ def get_latest_video():
                             for file in downloaded_files]
         # convert_webm_mp4(downloaded_files)
     if DOWNLOAD_AUDIO:
-        download_audio(needed_download_links)
+        logger.debug("Downloading audio ...")
+        download_audio()
     if DOWNLOAD_TRANSCRIPT:
-        download_transcript(needed_download_links)
+        logger.debug("Downloading transcript ...")
+        data = download_transcript(needed_download_links)
+        # insert the desc
+        for item in data:
+            video_dal.update(video_id=item['video_id'], data={
+                             'transcript': item['transcript']})
 
 
 # Schedule the task to run every day at 7:00 AM
-schedule.every().day.at("07:00").do(get_latest_video)
+schedule.every().day.at("12:00").do(get_latest_video)
 # schedule.every(60).seconds.do(get_latest_video)
 
 
 # get_channel_statistics()
 # response = get_latest_video()
-while True:
-    schedule.run_pending()
-    time.sleep(1)
-# get_latest_video()
+# while True:
+#     schedule.run_pending()
+#     time.sleep(1)
+get_latest_video()

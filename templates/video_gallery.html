@@ -113,7 +113,7 @@
             <div class="collapse navbar-collapse" id="navbarResponsive">
                 <ul class="navbar-nav ml-auto">
                     <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger"
-                            href="{{ url_for('video_rec_debug') }}">Recomendation</a>
+                            href="{{ url_for('video_rec') }}">Recomendation</a>
                     </li>
                     <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger"
                             href="{{ url_for('logout') }}">LOG OUT</a>
@@ -128,22 +128,30 @@
     <div class="video-container">
         {% for video_path, video_title, rating, thumbnail_url in video_info %}
         <div class="video-card" data-video-id="{{ video_path}} ">
-            <p>{{video_title}}</p>
-            <video style="max-width: 100%; margin: 10px; width:100%"
+            <p>{{rating}} | {{video_title}}</p>
+
+            <!-- USE FOR LOCALHOST VIDEO -->
+            <!-- <video style="max-width: 100%; margin: 10px; width:100%"
                 poster="{% if thumbnail_url %}{{ thumbnail_url }}{% else %}static/assets/img/thumbnail.jpeg{% endif %}"
                 controls>
                 <source type="video/{{ video_path.split('.')[-1] }}">
                 Your browser does not support the video tag.
-            </video>
+            </video> -->
+
+            <iframe style="max-width: 100%; margin: 10px; width:100%; height:270px;" src="{{ video_path }}"
+                frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen>
+            </iframe>
+
             <div class="buttons">
-                <button type="button" class="watch-button btn btn-secondary" data-video-path="{{ video_path}}"
-                    data-toggle="modal" onclick="loadVideo(this)">Play</button>
+                <!-- <button type="button" class="watch-button btn btn-secondary" data-video-path="{{ video_path}}"
+                    data-toggle="modal" onclick="loadVideo(this)">Play</button> -->
                 <button type="button" class="watch-button btn btn-success" data-video-path="{{ video_path}}"
-                    data-target="#myDialog" data-toggle="modal">Watched</button>
-                <button type="button" class="like-button btn btn-primary"
-                    data-video-path="{{ video_path}}">Like</button>
-                <button type="button" class="not-interested-button btn btn-danger" data-video-path="{{ video_path}}">Not
-                    Interested</button>
+                    data-target="#myDialog" data-toggle="modal">Rate</button>
+                <!-- <button type="button" class="like-button btn btn-primary"
+                    data-video-path="{{ video_path}}">Like</button> -->
+                <!-- <button type="button" class="not-interested-button btn btn-danger" data-video-path="{{ video_path}}">Not
+                    Interested</button> -->
             </div>
         </div>
         {% endfor %}
@@ -236,7 +244,7 @@
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({ video_name: videoPath })
-                }).then(response => response.json()).then(data => {
+                }).then(response => zresponse.json()).then(data => {
                     console.log(data);
                     // refresh
                     location.reload();
