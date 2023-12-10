@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Recommendation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <link href="static/css/styles.css" rel="stylesheet">
+    <link rel="stylesheet" href="static/css/heading.css">
+    <link rel="stylesheet" href="static/css/body.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .video-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        }
+
+        .video-card {
+            margin: 10px;
+            max-width: 480px;
+            /* Set the maximum width for the video player */
+            width: 100%;
+        }
+
+        video {
+            width: 100%;
+            height: auto;
+        }
+
+        p {
+            text-align: center;
+            margin-top: 5px;
+            font-weight: bold;
+            white-space: nowrap;
+            /* Preven line breaks within the title */
+            overflow: hidden;
+            /* Hide overflowing content */
+            text-overflow: ellipsis;
+            /* Display '...' when the text overflows */
+            max-width: 100%;
+            /* Ensure the title stays within its container */
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+        }
+
+        .buttons button {
+            margin: 5px;
+        }
+
+        .rating {
+            unicode-bidi: bidi-override;
+            /* direction: ltr; */
+            text-align: center;
+        }
+
+        .rating>span {
+            display: inline-block;
+            position: relative;
+            width: 1.1em;
+            cursor: pointer;
+        }
+
+        .rating>span:before,
+        .rating>span.selected:before {
+            content: "\2605";
+            position: absolute;
+            color: gold;
+        }
+
+        .rating>span:before {
+            visibility: hidden;
+        }
+
+        .rating>span:hover:before,
+        .rating>span.selected:before {
+            visibility: visible;
+        }
+    </style>
+    <style>
+        body {
+            padding-top: 150px;
+            /* Add padding to the top of the content */
+        }
+    </style>
+    <style>
+        .container {
+            width: 100%;
+            margin: 20px auto;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        button {
+            float: right;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 30%;
+            position: relative;
+        }
+
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        form {
+            margin-top: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 16px;
+        }
+
+        button[type="submit"] {
+            background-color: #4caf50;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+    </style>
+
+<body id="page-top">
+
+    <nav class="navbar navbar-expand-lg bg-secondary fixed-top" id="mainNav">
+        <div class="container"><a class="navbar-brand js-scroll-trigger" href="{{ url_for('info')}}">HOME</a>
+            <button class="navbar-toggler navbar-toggler-right font-weight-bold bg-primary text-white rounded"
+                type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive"
+                aria-expanded="false" aria-label="Toggle navigation">Menu <i class="fas fa-bars"></i></button>
+            <div class="collapse navbar-collapse" id="navbarResponsive">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger"
+                            href="{{ url_for('video_rec') }}">Recomendation</a>
+                    </li>
+                    <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger"
+                            href="{{ url_for('get_audio') }}">Podcast</a>
+                    </li>
+                    <li class="nav-item mx-0 mx-lg-1"><a class="nav-link py-3 px-0 px-lg-3 rounded js-scroll-trigger"
+                            href="{{ url_for('logout') }}">LOG OUT</a>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <h1>Video Management</h1>
+
+
+
+        <button id="addVideoBtn" type="button" class="watch-button btn btn-primary mb-3" data-target="#myDialog"
+            data-toggle="modal">Add
+            Video</button>
+        <button type="editVideo" class="watch-button btn btn-success mr-2 mb-3" data-target="#myDialog"
+            data-toggle="modal">Edit</button>
+
+        <button id="fetchAll" type="button" class="watch-button btn btn-info mr-2 mb-3" data-target="#myDialog"
+            data-toggle="modal">Fetch All</button>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Channel Name</th>
+                    <th>Channel ID</th>
+                    <th>Status</th>
+                    <th>Created at</th>
+                    <th>Updated at</th>
+                    <th>Limit Num Video</th>
+                    <th>Daily Video Count</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="videoTableBody">
+                {% for channel in channels %}
+                <tr>
+                    <td>{{ channel.channel_name }}</td>
+                    <td>{{ channel.channel_id }}</td>
+                    <td>{{ channel.status }}</td>
+                    <td>{{ channel.created_at }}</td>
+                    <td>{{ channel.updated_at }}</td>
+                    <td>{{ channel.limit_num }}</td>
+                    <td>{{ channel.daily_count }}</td>
+                    <td>
+                        <button type="button" class="watch-button btn btn-info mb-3 fetch-btn"
+                            data-channel-id="{{ channel.channel_id }}" data-toggle="modal">Fetch</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal for adding new video -->
+    <div id="addVideoModal" class="modal">
+        <div class="modal-content">
+            <form id="addVideoForm">
+                <div class="mb-3">
+                    <label for="channelName" class="form-label">Channel Name:</label>
+                    <input type="text" class="form-control" id="channelName" name="channelName" required>
+                </div>
+
+                <div class="mb-3">
+
+                    <label for="channelId" class="form-label">Channel ID:</label>
+                    <input type="text" class="form-control" id="channelId" name="channelId" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="status">Status:</label>
+                    <select id="status" name="status" required>
+                        <option value="" disabled>Select status</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Active" selected>Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+
+                <div class="buttons">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <button type="button" id="close-modal" class="btn btn-secondary close-modal">Close</button>
+                </div>
+
+
+        </div>
+        </form>
+    </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const addVideoBtn = document.getElementById('addVideoBtn');
+            const addVideoModal = document.getElementById('addVideoModal');
+            const closeModalBtn = document.getElementById("close-modal");
+            const addVideoForm = document.getElementById('addVideoForm');
+            const videoTableBody = document.getElementById('videoTableBody');
+
+            // Event listener for showing the add video modal
+            addVideoBtn.addEventListener('click', function () {
+                addVideoModal.style.display = 'block';
+            });
+
+            // Event listener for closing the add video modal
+            closeModalBtn.addEventListener('click', function () {
+                addVideoModal.style.display = 'none';
+            });
+
+            // Event listener for submitting the add video form
+            addVideoForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                console.log("trigger");
+
+                // Get form values
+                const channelName = document.getElementById('channelName').value;
+                const channelId = document.getElementById('channelId').value;
+                const status = document.getElementById('status').value;
+                const currentTime = new Date();
+                const hoChiMinhOffset = 7 * 60;
+                const hoChiMinhTime = new Date(currentTime.getTime() + hoChiMinhOffset * 60000);
+                const timestamp = hoChiMinhTime.toISOString().replace('Z', '+07:00'); // Replace Z with +07:00 to indicate the offset
+
+                const created_at = timestamp;
+                const updated_at = timestamp;
+                const limit_video = 50
+                const daily_count = 0
+                // Create a new row in the table
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `<td>${channelName}</td><td>${channelId}</td><td>${status}</td><td>${created_at}</td><td>${updated_at}</td><td>${limit_video}</td><td>${daily_count}</td>`;
+                videoTableBody.appendChild(newRow);
+
+                // Clear form values
+                addVideoForm.reset();
+
+                // Close the modal
+                addVideoModal.style.display = 'none';
+
+
+                // Send the request to Flask
+                fetch("/add_video", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ channel_name: channelName, channel_id: channelId, status: status })
+                }).then(response => response.json()).then(data => {
+                    console.log(data);
+                }).catch(error => {
+                    console.error("Error", error);
+                });
+
+            });
+        });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            var fetchButtons = document.querySelectorAll(".fetch-btn");
+
+            fetchButtons.forEach(function (button) {
+                button.addEventListener('click', function (event) {
+                    var channelId = event.target.getAttribute('data-channel-id');
+
+                    fetchChannelData(channelId);
+
+                })
+            })
+
+        })
+
+        function fetchChannelData(channelId) {
+            console.log("Fetching data for channel ID", channelId)
+            // Send the request to Flask
+            fetch("/fetch_video", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ channel_id: channelId })
+            }).then(response => response.json()).then(data => {
+                console.log(data);
+            }).catch(error => {
+                console.error("Error", error);
+            });
+        }
+
+
+
+
+    </script>
+</body>
+
+</head>
